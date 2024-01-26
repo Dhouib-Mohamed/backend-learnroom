@@ -1,16 +1,16 @@
-import {Injectable, NotFoundException} from '@nestjs/common';
-import {SignInDto} from "./dto/sign-in.dto";
-import {TeacherService} from "../teacher/Teacher.service";
-import {StudentService} from "../student/student.service";
-import {Teacher} from "../teacher/entities/teacher.entity";
-import {InjectRepository} from "@nestjs/typeorm";
-import {Repository} from "typeorm";
-import {Student} from "../student/entities/student.entity";
-import {ClassroomService} from "../classroom/classroom.service";
-import * as bcrypt from 'bcrypt';
-
-// const salt= bcrypt.genSalt();
-// console.log(salt)
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { SignInDto } from "./dto/sign-in.dto";
+import { TeacherService } from "../teacher/Teacher.service";
+import { StudentService } from "../student/student.service";
+import { Teacher } from "../teacher/entities/teacher.entity";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Student } from "../student/entities/student.entity";
+import { ClassroomService } from "../classroom/classroom.service";
+import * as bcrypt from "bcrypt";
+import { TokenService } from "./token.service";
+import { SignUpDto } from "./dto/sign-up.dto";
+import { Role } from "./role.enum";
 
 @Injectable()
 export class UserService {
@@ -22,38 +22,33 @@ export class UserService {
         private teacherRepository: Repository<Teacher>,
         @InjectRepository(Student)
         private studentRepository: Repository<Student>,
+        private readonly authService: TokenService,
     ) {
     }
 
-    async signIn(SignInDto: SignInDto) {
+    async signIn(SignInDto: SignInDto): Promise<{token: String }> {
         try {
+            let content
             const teacher: any = await this.teacherRepository.findOneBy({email: SignInDto.email})
-            console.log(teacher)
+            console.log(teacher);
             if (teacher) {
-                // if (teacher.password !== SignInDto.password) {
-                //     throw new NotFoundException("Password Not Found")
-                // }
                 const hashedMdp = await bcrypt.hash(SignInDto.password, process.env.salt);
                 if (hashedMdp !== teacher.password) {
                     throw new NotFoundException(`Incorrect Password`);
                 }
-                // teacher.password = teacher.password.length
-
-                return {...teacher, user: true}
+                content =  {...teacher, user: true}
             }
-            console.log(teacher)
             const student: any = await this.studentRepository.findOneBy({email: SignInDto.email})
-            console.log(student)
+            console.log(student);
             if (student) {
-                // if (student.password !== SignInDto.password) {
-                //     throw new NotFoundException("Password Not Found")
-                // }
                 const hashedMdp = await bcrypt.hash(SignInDto.password, process.env.salt);
                 if (hashedMdp !== student.password) {
                     throw new NotFoundException(`Incorrect Password`);
                 }
-                // student.password = student.password.length
-                return {...student, user: false}
+                content =  {...student, user: false}
+            }
+            if (content) {
+                return {token: await this.authService.encode({role: content.user ? Role.Teacher : Role.Student,id:content.id})}
             }
             throw new NotFoundException("Email Not Found")
         } catch (e) {
@@ -61,10 +56,10 @@ export class UserService {
         }
     }
 
-    async signup(SignUpDto) {
+    async signup(SignUpDto:SignUpDto) {
 
         try {
-            let user
+            let user : (Teacher| Student) & {user:Boolean}
             const noTeacher = await this.teacherRepository.findOneBy({email: SignUpDto.email})
             const noStudent = await this.teacherRepository.findOneBy({email: SignUpDto.email})
             if (noTeacher || noStudent) {
@@ -77,55 +72,61 @@ export class UserService {
                     avatar_color: "#" + Math.floor(Math.random() * 16777215).toString(16),
                     classes: []
                 });
-                //user.password= await bcrypt.hash(user.password, process.env.salt);
             } else {
-                console.log("student")
                 SignUpDto.password=await bcrypt.hash(SignUpDto.password, process.env.salt);
-                console.log(SignUpDto)
                 user = await this.studentService.create({
                     ...SignUpDto,
                     avatar_color: "#" + Math.floor(Math.random() * 16777215).toString(16),
                     classes: []
                 });
-                //user.password= await bcrypt.hash(SignUpDto.mdp, process.env.salt);
             }
 
             if (!user) {
                 throw new NotFoundException();
             }
-            // user.password = user.password.length
-            user.user = SignUpDto.user;
-            return user;
+            return {token: await this.authService.encode({role: SignUpDto.user ? Role.Teacher : Role.Student,id:user.id})}
         } catch (e) {
-            console.log("erreur")
             return (e)
         }
     }
 
-    async getAll(id, type) {
+    async getAll(user: TokenUser) {
         try {
             let classes
-            if (type) {
-                const teacher = await this.teacherService.findOne(id)
+            if (user.role==="teacher") {
+                const teacher = await this.teacherService.findOne(user.id)
                 classes = await this.classService.findByCriteria({teacher: teacher})
             } else {
-                const student = await this.studentService.findOne(id)
+                const student = await this.studentService.findOne(user.id)
                 classes = await this.classService.findByCriteria({students: student})
             }
-            console.log(classes)
-            let courses = []
-            let tasks = []
-            let assignments = []
+            const courses = []
+            const tasks = []
+            const assignments = []
             for (const e of classes) {
-                courses = [...courses, ...(await this.classService.getAllCourses(e.id))]
-                tasks = [...tasks, ...(await this.classService.getAllTasks(e.id))]
-                assignments = [...assignments, ...(await this.classService.getAllAssignments(e.id))]
+                courses.push(await this.classService.getAllCourses(e.id))
+                tasks.push(await this.classService.getAllTasks(e.id))
+                assignments.push(await this.classService.getAllAssignments(e.id))
             }
-            console.log()
             return {courses, tasks, assignments}
         } catch (e) {
             return (e)
         }
     }
+
+    async getUser(user:TokenUser) {
+        try {
+            if (user.role === Role.Teacher) {
+                return { ...await this.teacherService.findOne(user.id),user:true }
+            }
+            if (user.role === Role.Student) {
+                return { ...await this.studentService.findOne(user.id),user:false }
+            }
+        } catch (e) {
+            return (e)
+        }
+    }
 }
+
+export type TokenUser = { role: Role, id: string }
 

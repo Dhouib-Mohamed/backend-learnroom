@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ClassroomModule } from './classroom/classroom.module';
 import { PracticeModule } from './practice/practice.module';
 import { CourseModule } from './course/course.module';
@@ -43,7 +41,5 @@ dotenv.config();
             entities: [Teacher, Student, Course, Classroom, Practice, ResponseTask, ResponseAssignment],
         }),
     ],
-    controllers: [AppController],
-    providers: [AppService],
 })
 export class AppModule {}

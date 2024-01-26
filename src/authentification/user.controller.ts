@@ -1,7 +1,9 @@
-import {Body, Controller, Get, Param, Post} from '@nestjs/common';
-import {SignInDto} from "./dto/sign-in.dto";
-import {SignUpDto} from "./dto/sign-up.dto";
-import {UserService} from "./user.service";
+import { Body, Controller, Get, Param, Post, Res, UseGuards } from "@nestjs/common";
+import { SignInDto } from "./dto/sign-in.dto";
+import { SignUpDto } from "./dto/sign-up.dto";
+import { TokenUser, UserService } from "./user.service";
+import { RoleGuard } from "./role.guard";
+import { GetUser } from "./get-user.decorator";
 
 @Controller('user')
 export class UserController {
@@ -9,18 +11,25 @@ export class UserController {
   constructor(private readonly userService: UserService) {
   }
 
-  @Post("signin")
-  signin(@Body() SignInDto: SignInDto) {
+  @Post("signin",)
+  async signin(@Body() SignInDto: SignInDto) {
     return this.userService.signIn(SignInDto);
   }
 
   @Post("signup")
-  signup(@Body() SignUpDto: SignUpDto) {
+  async signup(@Body() SignUpDto: SignUpDto) {
     return this.userService.signup(SignUpDto);
   }
 
+  @Get("/current")
+  @UseGuards(RoleGuard())
+  current(@GetUser() user: TokenUser ) {
+    return this.userService.getUser(user);
+  }
+
   @Get(":id/:type")
-  all(@Param("id") id, @Param("type") type) {
-    return this.userService.getAll(id, type)
+  @UseGuards(RoleGuard())
+  all(@GetUser() user: TokenUser) {
+    return this.userService.getAll(user)
   }
 }

@@ -6,6 +6,7 @@ import {Course} from "./entities/course.entity";
 import {ClassroomModule} from "../classroom/classroom.module";
 import {Practice} from "../practice/entities/practice.entity";
 import {Task} from "../task/entities/task.entity";
+import { TokenService } from "../authentification/token.service";
 
 @Module({
     imports: [
@@ -14,7 +15,7 @@ import {Task} from "../task/entities/task.entity";
         TypeOrmModule.forFeature([Task]),
         forwardRef(() => ClassroomModule),
     ],
-    providers: [CourseService],
+    providers: [CourseService,TokenService],
     exports: [CourseService],
     controllers: [CourseController],
 })

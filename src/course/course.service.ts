@@ -1,4 +1,5 @@
 import {forwardRef, Inject, Injectable} from '@nestjs/common';
+import { ILike } from "typeorm";
 import {CreateCourseDto} from './dto/create-course.dto';
 import {Course} from './entities/course.entity';
 import {GenericService} from 'src/generic/generic.service';
@@ -68,6 +69,20 @@ export class CourseService extends GenericService<Course> {
                 await this.practiceRepository.delete(e.id)
             }
             return this.delete(id)
+        } catch (e) {
+            console.log(e);
+            return e.sqlmessage ?? e;
+        }
+    }
+    async searchCourse(query: string, classroomId: string) {
+        try {
+            const classroom = await this.classService.findOne(classroomId)
+            return await this.courseRepository.find({
+                where: {
+                    class: classroom,
+                    name: ILike(`%${query}%`)
+                }
+            })
         } catch (e) {
             console.log(e);
             return e.sqlmessage ?? e;

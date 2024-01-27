@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Query, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import {CourseService} from './course.service';
 import {CreateCourseDto} from "./dto/create-course.dto";
 import {UpdateCourseDto} from "./dto/update-course.dto";
@@ -8,6 +8,11 @@ import { Role } from "../authentification/role.enum";
 @Controller('course')
 export class CourseController {
     constructor(private readonly courseService: CourseService) {
+    }
+
+    @Get('search')
+     search(@Query('classroomId') classroomId, @Query('query') query: string) {
+        return this.courseService.searchCourse(query, classroomId);
     }
 
     @Get(':id')

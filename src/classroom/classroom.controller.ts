@@ -4,6 +4,8 @@ import { CreateClassroomDto } from "./dto/create-classroom.dto";
 import { UpdateClassroomDto } from "./dto/update-classroom.dto";
 import { RoleGuard } from "../authentification/role.guard";
 import { Role } from "../authentification/role.enum";
+import { GetUser } from "../authentification/get-user.decorator";
+import { TokenUser } from "../authentification/user.service";
 
 @Controller('classroom')
 export class ClassroomController {
@@ -12,8 +14,8 @@ export class ClassroomController {
 
   @Get()
   @UseGuards(RoleGuard())
-  findAll() {
-    return this.classroomService.findAll();
+  findAll(@GetUser() user: TokenUser) {
+    return this.classroomService.findAllClassrooms(user);
   }
 
   @Get(':id')

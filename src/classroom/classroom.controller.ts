@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, Query } from "@nestjs/common";
 import { ClassroomService } from "./classroom.service";
 import { CreateClassroomDto } from "./dto/create-classroom.dto";
 import { UpdateClassroomDto } from "./dto/update-classroom.dto";
@@ -12,6 +12,10 @@ export class ClassroomController {
   constructor(private readonly classroomService: ClassroomService) {
   }
 
+  @Get('/search')
+  search( @Query('query') query: string, @Query('studentId') studentId?: string, @Query('teacherId') teacherId?: string) {
+    return this.classroomService.searchByName(query, studentId, teacherId);
+  }
   @Get()
   @UseGuards(RoleGuard())
   findAll(@GetUser() user: TokenUser) {

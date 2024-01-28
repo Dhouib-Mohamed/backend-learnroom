@@ -12,14 +12,10 @@ export class ClassroomController {
   constructor(private readonly classroomService: ClassroomService) {
   }
 
-  @Get('/search')
-  search( @Query('query') query: string, @Query('studentId') studentId?: string, @Query('teacherId') teacherId?: string) {
-    return this.classroomService.searchByName(query, studentId, teacherId);
-  }
-  @Get()
+  @Get('')
   @UseGuards(RoleGuard())
-  findAll(@GetUser() user: TokenUser) {
-    return this.classroomService.findAllClassrooms(user);
+  getByQuery( @Query('query') query: string, @GetUser() user: TokenUser) {
+    return this.classroomService.searchByName(query, user);
   }
 
   @Get(':id')
@@ -65,7 +61,7 @@ export class ClassroomController {
   }
 
   @Patch(":id/:email")
-  @UseGuards(RoleGuard(Role.Teacher))
+  @UseGuards(RoleGuard(Role.Student))
   addUser(@Param('email') email: string, @Param('id') id: string,) {
     return this.classroomService.addUser(id, email);
   }

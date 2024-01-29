@@ -6,6 +6,7 @@ import {TypeOrmModule} from "@nestjs/typeorm";
 import {ResponseAssignment} from "./entities/response_assignment.entity";
 import {PracticeModule} from "../practice/practice.module";
 import {StudentModule} from "../student/student.module";
+import { TokenService } from "../authentification/token.service";
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import {StudentModule} from "../student/student.module";
       PracticeModule, StudentModule
   ],
   controllers: [ResponseAssignmentController],
-  providers: [ResponseAssignmentService]
+  providers: [ResponseAssignmentService,TokenService]
 })
 export class ResponseAssignmentModule {}

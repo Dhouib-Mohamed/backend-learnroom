@@ -5,6 +5,7 @@ import {TypeOrmModule} from "@nestjs/typeorm";
 import {ResponseTask} from "./entities/response_task.entity";
 import {StudentModule} from "../student/student.module";
 import {TaskModule} from "../task/task.module";
+import { TokenService } from "../authentification/token.service";
 
 @Module({
   imports: [
@@ -12,6 +13,6 @@ import {TaskModule} from "../task/task.module";
     TaskModule, StudentModule
   ],
   controllers: [ResponseTaskController],
-  providers: [ResponseTaskService]
+  providers: [ResponseTaskService,TokenService]
 })
 export class ResponseTaskModule {}

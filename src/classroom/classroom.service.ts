@@ -10,6 +10,8 @@ import {Practice} from "../practice/entities/practice.entity";
 import {Task} from "../task/entities/task.entity";
 import {CourseService} from "../course/course.service";
 import {Course} from "../course/entities/course.entity";
+import { Role } from "../authentification/role.enum";
+import { TokenUser } from "../authentification/user.service";
 
 @Injectable()
 export class ClassroomService extends GenericService<Classroom> {
@@ -24,6 +26,22 @@ export class ClassroomService extends GenericService<Classroom> {
       private readonly courseService: CourseService
   ) {
     super(classRepository);
+  }
+
+  findAllClassrooms = async (user:TokenUser) => {
+    try {
+      if(user.role === Role.Teacher){
+        const teacher = await this.teacherService.findOne(user.id)
+        return await this.findByCriteria({teacher:teacher})
+      }
+      if(user.role === Role.Student){
+        const student = await this.studentService.findOne(user.id)
+        return await this.findByCriteria({students:student})
+      }
+      return
+    } catch (e) {
+      return e.sqlmessage ?? e;
+    }
   }
 
   createClass = async (id, createClassroomDto: CreateClassroomDto) => {

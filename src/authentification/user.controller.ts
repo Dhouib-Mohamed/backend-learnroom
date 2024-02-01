@@ -27,7 +27,7 @@ export class UserController {
     return this.userService.getUser(user);
   }
 
-  @Get(":id/:type")
+  @Get("/all")
   @UseGuards(RoleGuard())
   all(@GetUser() user: TokenUser) {
     return this.userService.getAll(user)

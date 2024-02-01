@@ -1,5 +1,8 @@
 import {forwardRef, Inject, Injectable} from '@nestjs/common';
 import { ILike } from "typeorm";
+import { TokenUser } from "../authentification/user.service";
+import { ResponseTask } from "../response_task/entities/response_task.entity";
+import { Student } from "../student/entities/student.entity";
 import {CreateCourseDto} from './dto/create-course.dto';
 import {Course} from './entities/course.entity';
 import {GenericService} from 'src/generic/generic.service';
@@ -21,7 +24,11 @@ export class CourseService extends GenericService<Course> {
         @InjectRepository(Task)
         private taskRepository: Repository<Task>,
         @Inject(forwardRef(() => ClassroomService))
-        private readonly classService: ClassroomService
+        private readonly classService: ClassroomService,
+        @InjectRepository(ResponseTask)
+          private responseTaskRepository: Repository<ResponseTask>,
+        @InjectRepository(Student)
+        private studentRepository: Repository<Student>,
     ) {
         super(courseRepository);
     }
@@ -35,10 +42,23 @@ export class CourseService extends GenericService<Course> {
         }
     }
 
-    async getAllTasks(id: any): Promise<Task[]> {
+    async getAllTasks(id: any, status?: string, user?: TokenUser): Promise<Task[]> {
         try {
             const course = await this.findOne(id)
-            return await this.taskRepository.findBy({course})
+            if (!status || !user || user.role === 'teacher') {
+                return await this.taskRepository.findBy({course: {id: course.id}})
+            }
+            const responseTask = await this.responseTaskRepository.findOneBy({
+                student: { id: user.id },
+                completed: status === 'completed'
+            })
+            console.log('responseTask', responseTask)
+            return await this.taskRepository.find({
+                where: {
+                    responseTasks: responseTask,
+                    course: { id: course.id }
+                },
+            })
         } catch (e) {
             console.log(e);
             return e.sqlmessage ?? e;

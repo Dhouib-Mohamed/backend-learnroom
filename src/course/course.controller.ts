@@ -1,4 +1,7 @@
+import { Req } from "@nestjs/common";
 import { Body, Query, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { GetUser } from "../authentification/get-user.decorator";
+import { TokenUser } from "../authentification/user.service";
 import {CourseService} from './course.service';
 import {CreateCourseDto} from "./dto/create-course.dto";
 import {UpdateCourseDto} from "./dto/update-course.dto";
@@ -23,8 +26,10 @@ export class CourseController {
 
     @Get('task/:id')
     @UseGuards(RoleGuard())
-    getTasks(@Param('id') id: string) {
-        return this.courseService.getAllTasks(id);
+    getTasks(@Param('id') id: string,
+             @Query('status') status: 'completed' | 'inProgress' | undefined,
+             @GetUser() user:TokenUser) {
+        return this.courseService.getAllTasks(id, status, user);
     }
 
     @Get('assignment/:id')

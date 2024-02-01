@@ -32,8 +32,8 @@ export class ClassroomController {
 
   @Get('task/:id')
   @UseGuards(RoleGuard())
-  getTasks(@Param('id') id: string) {
-    return this.classroomService.getAllTasks(id);
+  getTasks(@Param('id') id: string, @Query('status') status: 'completed' | 'inProgress' | undefined, @GetUser() user: TokenUser) {
+    return this.classroomService.getAllTasks(id, status, user);
   }
 
   @Get('assignment/:id')

@@ -95,12 +95,12 @@ export class ClassroomService extends GenericService<Classroom> {
     }
   }
 
-  async getAllTasks(id: any): Promise<Task[]> {
+  async getAllTasks(id: any, status?: string, user?: TokenUser): Promise<Task[]> {
     try {
       const classes = await this.getAllCourses(id)
       let tasks = []
       for (const e of classes) {
-        tasks = [...tasks, ...(await this.courseService.getAllTasks(e.id))]
+        tasks = [...tasks, ...(await this.courseService.getAllTasks(e.id, status, user))]
       }
       return tasks
     } catch (e) {

@@ -13,6 +13,7 @@ export const RoleGuard = (roles?: Role [] | Role) => {
         throw new Error("Token not found");
       }
       const user = await this.TokenService.decode(token);
+      console.log("user", user)
       if (!user.role) {
         throw new Error("User has no role");
       }

@@ -5,6 +5,7 @@ import {InjectRepository} from "@nestjs/typeorm";
 import {Repository} from "typeorm";
 import {PracticeService} from "../practice/practice.service";
 import {StudentService} from "../student/student.service";
+import {CreateResponseAssignmentDto} from "./dto/update-response_assignment.dto";
 
 @Injectable()
 export class ResponseAssignmentService extends GenericService<ResponseAssignment> {
@@ -17,21 +18,36 @@ export class ResponseAssignmentService extends GenericService<ResponseAssignment
         super(responsePracticeRepository);
     }
 
-    getResponse = async (idAssignment, idStudent) => {
+    getResponse = async (idAssignment:string, idStudent:string) => {
         try {
             const assignment = await this.PracticeService.findOne(idAssignment);
-            console.log(assignment)
             const student = await this.StudentService.findOne(idStudent);
-            console.log(student)
-            const response = await this.responsePracticeRepository.findOneBy({student, assignment})
-           if(response){
-               return response
-           }
-           return await this.responsePracticeRepository.save({content:"", assignment , student})
-
+            return await this.responsePracticeRepository.findOneBy({student, assignment})
 
         } catch (e) {
             return e.sqlmessage ?? e;
         }
     }
+    getResponses = async (idAssignment:string) => {
+        try {
+            const assignment = await this.PracticeService.findOne(idAssignment);
+            const reponses =  await this.responsePracticeRepository.findBy({assignment})
+            return reponses
+
+        } catch (e) {
+            return e.sqlmessage ?? e;
+        }
+    }
+
+    handleResponse = async (idAssignment:string, idStudent:string,createResponse:CreateResponseAssignmentDto) => {
+        try {
+            const assignment = await this.PracticeService.findOne(idAssignment);
+            const student = await this.StudentService.findOne(idStudent);
+            const newResponse =await this.create({score:0,...createResponse, assignment , student})
+            return newResponse
+        } catch (e) {
+            return e.sqlmessage ?? e;
+        }
+    }
+
 }

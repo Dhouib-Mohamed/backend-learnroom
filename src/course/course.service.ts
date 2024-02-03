@@ -48,17 +48,18 @@ export class CourseService extends GenericService<Course> {
             if (!status || !user || user.role === 'teacher') {
                 return await this.taskRepository.findBy({course: {id: course.id}})
             }
-            const responseTask = await this.responseTaskRepository.findOneBy({
+            const responseTasks = await this.responseTaskRepository.findBy({
                 student: { id: user.id },
                 completed: status === 'completed'
             })
-            console.log('responseTask', responseTask)
+            if (!responseTasks.length)  {
+                return [];
+            }
             return await this.taskRepository.find({
                 where: {
-                    responseTasks: responseTask,
-                    course: { id: course.id }
-                },
-            })
+                    responseTasks: responseTasks,
+                    course,
+            }})
         } catch (e) {
             console.log(e);
             return e.sqlmessage ?? e;

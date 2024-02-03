@@ -22,15 +22,31 @@ export class ResponseTaskService extends GenericService<ResponseTask> {
         try {
             const task = await this.TaskService.findOne(idTask);
             const student = await this.StudentService.findOne(idStudent)
-            const response =  await this.responseTaskRepository.findOneBy({student, task})
-            if(response){
-                return response
-            }
-            return await this.responseTaskRepository.save({completed:false, task , student})
-
+            let response: ResponseTask;
+            response = await this.responseTaskRepository.findOneBy({student, task});
+              return response
         } catch (e) {
             return e.sqlmessage ?? e;
         }
+    }
+    toggleResponseTask = async (idTask:string, idStudent:string) => {
+      try {
+          const response = await this.getResponseTask(idTask, idStudent)
+          console.log("res",response)
+          if(response)
+          {
+              return await this.responseTaskRepository.update(response.id, {completed: !response.completed})
+          }
+          else{
+              const task = await this.TaskService.findOne(idTask);
+              const student = await this.StudentService.findOne(idStudent)
+              return await this.create({task: task, student: student, completed: true})
+          }
+      }
+      catch (e) {
+          return e.sqlmessage ?? e;
+      }
+
     }
 
 

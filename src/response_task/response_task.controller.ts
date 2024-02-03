@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, UseGuards } from "@nestjs/common";
+import {Controller, Get, Param, Patch, Put, UseGuards} from "@nestjs/common";
 import {ResponseTaskService} from './response_task.service';
 import { RoleGuard } from "../authentification/role.guard";
 import { GetUser } from "../authentification/get-user.decorator";
@@ -15,10 +15,10 @@ export class ResponseTaskController {
     return  this.responseTaskService.getResponseTask(id,user.id);
   }
 
-  @Patch(':id')
+  @Patch(':taskId/:studentId')
   @UseGuards(RoleGuard(Role.Student))
-  async update(@Param('id') id ) {
-    const resp = await this.responseTaskService.findOne(id)
-    return this.responseTaskService.update(id,{completed : !resp.completed } )
+  async create(@Param('taskId') taskId,@Param('studentId') studentId ) {
+    return this.responseTaskService.toggleResponseTask(taskId,studentId)
+
   }
 }

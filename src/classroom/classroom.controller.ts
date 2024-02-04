@@ -61,7 +61,7 @@ export class ClassroomController {
   }
 
   @Patch(":id/:email")
-  @UseGuards(RoleGuard(Role.Teacher))
+  @UseGuards(RoleGuard([Role.Teacher,Role.Student]))
   addUser(@Param('email') email: string, @Param('id') id: string,) {
     return this.classroomService.addUser(id, email);
   }

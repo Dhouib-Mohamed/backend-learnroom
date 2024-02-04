@@ -1,5 +1,5 @@
 import {forwardRef, Inject, Injectable} from '@nestjs/common';
-import { ILike } from "typeorm";
+import {ILike, In, Not} from "typeorm";
 import { TokenUser } from "../authentification/user.service";
 import { ResponseTask } from "../response_task/entities/response_task.entity";
 import { Student } from "../student/entities/student.entity";
@@ -52,9 +52,24 @@ export class CourseService extends GenericService<Course> {
                 student: { id: user.id },
                 completed: status === 'completed'
             })
+
             if (!responseTasks.length)  {
                 return [];
             }
+            const tasksWithNoResponses = await this.taskRepository.find( {
+                where:
+                    {
+                        id: Not(
+                            In( await this.responseTaskRepository.createQueryBuilder()
+                                .select('response_task')
+                                .where('response_task_student = :userId', {userId: user.id})
+                                .getMany()
+                        )) ,
+                        course,
+
+                    }
+            } )
+            console.log("taskW-----------------", tasksWithNoResponses.length)
             return await this.taskRepository.find({
                 where: {
                     responseTasks: responseTasks,

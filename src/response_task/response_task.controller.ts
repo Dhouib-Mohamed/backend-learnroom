@@ -10,7 +10,7 @@ import { Role } from "../authentification/role.enum";
 export class ResponseTaskController {
   constructor(private readonly responseTaskService: ResponseTaskService) {}
   @Get(':id')
-  @UseGuards(RoleGuard(Role.Student))
+  @UseGuards(RoleGuard([Role.Teacher,Role.Student]))
   getTask(@Param('id') id, @GetUser() user:TokenUser) {
     return  this.responseTaskService.getResponseTask(id,user.id);
   }

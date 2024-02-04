@@ -23,7 +23,7 @@ export class TaskController {
     }
 
     @Get(':id')
-    @UseGuards(RoleGuard())
+    @UseGuards(RoleGuard([Role.Teacher,Role.Student]))
     findOne(@Param('id') id: string) {
         return this.taskService.getTask(id);
     }

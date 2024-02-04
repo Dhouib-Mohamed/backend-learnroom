@@ -10,8 +10,6 @@ export class Task {
     name: string;
     @Column()
     content: string;
-    @Column()
-    points: number
     @ManyToOne(() => Course, (e) => e.tasks)
     @JoinColumn({name: "course_task"})
     course: Course

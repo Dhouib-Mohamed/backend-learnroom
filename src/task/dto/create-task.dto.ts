@@ -7,7 +7,4 @@ export class CreateTaskDto {
     @IsDefined()
     @IsString()
     content: string;
-    @IsNumber()
-    @IsDefined()
-    points: number;
 }

@@ -48,33 +48,36 @@ export class CourseService extends GenericService<Course> {
             if (!status || !user || user.role === 'teacher') {
                 return await this.taskRepository.findBy({course: {id: course.id}})
             }
-            const responseTasks = await this.responseTaskRepository.findBy({
-                student: { id: user.id },
-                completed: status === 'completed'
-            })
+            else {
+                let responseTasks;
+                let tasks;
 
-            if (!responseTasks.length)  {
-                return [];
-            }
-            const tasksWithNoResponses = await this.taskRepository.find( {
-                where:
-                    {
-                        id: Not(
-                            In( await this.responseTaskRepository.createQueryBuilder()
-                                .select('response_task')
-                                .where('response_task_student = :userId', {userId: user.id})
-                                .getMany()
-                        )) ,
+                 responseTasks = await this.responseTaskRepository.findBy({
+                    student: { id: user.id },
+                    completed:true
+                })
+
+                if (!responseTasks.length)  {
+                    return [];
+                }
+
+                tasks= await this.taskRepository.find({
+                    where: {
+                        responseTasks:responseTasks,
                         course,
-
+                    }})
+                if(status=="completed"){
+                    return tasks
+                }
+                return  await this.taskRepository.find({
+                    where: {
+                        id: Not(In(tasks.map(e => e.id))),
+                        course,
                     }
-            } )
-            console.log("taskW-----------------", tasksWithNoResponses.length)
-            return await this.taskRepository.find({
-                where: {
-                    responseTasks: responseTasks,
-                    course,
-            }})
+                })
+
+
+            }
         } catch (e) {
             console.log(e);
             return e.sqlmessage ?? e;

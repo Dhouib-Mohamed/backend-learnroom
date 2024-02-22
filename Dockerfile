@@ -1,20 +1,32 @@
-# Base image
-FROM node:18
+# First stage: Install dependencies
+FROM node:18 as dependencies
 
-# Create app directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
-# Install app dependencies
-RUN npm install
+RUN npm ci
 
-# Bundle app source
+# Second stage: Build the application
+FROM dependencies as build
+
+WORKDIR /app
+
 COPY . .
 
-# Creates a "dist" folder with the production build
 RUN npm run build
 
-# Start the server using the production build
-CMD [ "node", "dist/main.js" ]
+# Third stage: Export and run the application
+FROM node:18-alpine as release
+
+WORKDIR /app
+
+COPY --from=build /app/dist ./dist
+
+COPY --from=dependencies /app/node_modules ./node_modules
+
+COPY package.json .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start:prod"]

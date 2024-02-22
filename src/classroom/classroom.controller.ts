@@ -15,6 +15,7 @@ export class ClassroomController {
   @Get('')
   @UseGuards(RoleGuard())
   getByQuery( @Query('query') query: string, @GetUser() user: TokenUser) {
+    console.log("hello");
     return this.classroomService.searchByName(query, user);
   }
 
